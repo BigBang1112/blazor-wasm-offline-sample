@@ -1,0 +1,13 @@
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: bigbang1112/workflows/.github/workflows/deploy-pages.yml@main
+    with:
+      dotnet-version: 10.x.x
+      project: BlazorWasmOfflineSample
