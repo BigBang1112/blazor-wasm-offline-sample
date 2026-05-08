@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
+  deploy:
+    name: Deploy to Pages
     uses: bigbang1112/workflows/.github/workflows/deploy-pages.yml@main
     with:
       dotnet-version: 10.x.x
