@@ -1,10 +1,8 @@
-# BlazorWasmOfflineSample
+# Blazor WebAssembly Offline Sample
 
 [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/bigbang1112/blazor-wasm-offline-sample/main?style=for-the-badge&logo=github)](https://github.com/BigBang1112/blazor-wasm-offline-sample)
 
-BlazorWasmOfflineSample is a guide and working example for deploying a Blazor WebAssembly app to **GitHub Pages** with full **offline (PWA) support**. GitHub Pages imposes several restrictions that require workarounds.
-
-The project was built step by step. Each section below explains what was changed and why, so you can replicate the result in your own project.
+A guide and working example for deploying a Blazor WebAssembly app to **GitHub Pages** with full **offline (PWA) support**. GitHub Pages imposes several restrictions that require workarounds.
 
 ## Steps
 
@@ -16,8 +14,6 @@ Start from the standard Blazor WebAssembly template with PWA / offline support e
 dotnet new blazorwasm --pwa -o MyApp
 ```
 
----
-
 ### 2. Reduce WASM bundle size with invariant globalization
 
 The ICU globalization data in the WASM runtime is very large. Unless you need full culture/timezone support, add these properties to your `.csproj`:
@@ -28,8 +24,6 @@ The ICU globalization data in the WASM runtime is very large. Unless you need fu
     <InvariantTimezone>true</InvariantTimezone>
 </PropertyGroup>
 ```
-
----
 
 ### 3. Handle SPA routing on GitHub Pages (404.html trick)
 
@@ -91,8 +85,6 @@ The workaround is a two-part redirect:
 <!-- End Single Page Apps for GitHub Pages -->
 ```
 
----
-
 ### 4. Serve Brotli-compressed assets
 
 GitHub Pages cannot serve `Content-Encoding: br` headers, so the browser's built-in Brotli decompression will not kick in automatically. However, `dotnet publish` compresses all `.dll`, `.wasm`, `.pdb`, and `.dat` files into `.br` archives. You need to decompress them in JavaScript at load time.
@@ -135,8 +127,6 @@ Add `autostart="false"` to the Blazor script tag, then start Blazor manually wit
 > **Note for .NET 10+:** `loadBootResource` is a top-level option on `Blazor.start({})`, not nested under `webAssembly: {}`. Earlier .NET versions used the nested form. Using the wrong form silently does nothing and the app loads uncompressed files.
 
 The `location.hostname !== 'localhost'` guard ensures Brotli interception is skipped during local development, where the dev server serves files normally.
-
----
 
 ### 5. Update the service worker to cache `.br` files
 
@@ -213,8 +203,6 @@ async function onFetch(event) {
 }
 ```
 
----
-
 ### 8. Add a GitHub Actions workflow for GitHub Pages
 
 GitHub Pages by default serves from the `username.github.io/repo-name` path, so the app must reflect the base path in the `wwwroot/index.html` `<base href="/repo-name/">` tag AND in the `wwwroot/service-worker.js` `baseUrl` variable. This should be done before the publish step to avoid integrity issues. Of course, you can avoid this step if you are using a custom domain.
@@ -270,8 +258,6 @@ jobs:
       dotnet-version: 10.x.x
       project: MyApp
 ```
-
----
 
 ## Demo
 
