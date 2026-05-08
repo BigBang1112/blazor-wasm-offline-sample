@@ -261,4 +261,4 @@ jobs:
 
 ## Demo
 
-The sample is deployed at: `https://bigbang1112.github.io/blazor-wasm-offline-sample/`
+The sample is deployed [here](https://bigbang1112.github.io/blazor-wasm-offline-sample/).
