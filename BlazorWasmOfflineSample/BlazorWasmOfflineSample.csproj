@@ -22,4 +22,13 @@
         <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
     </ItemGroup>
 
+    <Target Name="AddBrotliFilesToManifest" BeforeTargets="GenerateServiceWorkerAssetsManifest">
+        <ItemGroup>
+            <ServiceWorkerAssetsManifestItem
+              Include="wwwroot\_framework\**\*.br"
+              RelativePath="wwwroot\_framework\%(RecursiveDir)%(FileName)%(Extension)"
+              AssetUrl="_framework\%(RecursiveDir)%(FileName)%(Extension)" />
+        </ItemGroup>
+    </Target>
+
 </Project>
