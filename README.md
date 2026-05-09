@@ -87,7 +87,11 @@ The workaround is a two-part redirect:
 
 ### 4. Serve Brotli-compressed assets
 
-GitHub Pages cannot serve `Content-Encoding: br` headers, so the browser's built-in Brotli decompression will not kick in automatically. However, `dotnet publish` compresses all `.dll`, `.wasm`, `.pdb`, and `.dat` files into `.br` archives. You need to decompress them in JavaScript at load time.
+This step can be skipped if you're fine with just gzip compression.
+
+Currently, compression will work for fine for gzip assets. GitHub Pages will allocate the `.gz` files automatically, confirmed by the presence of `Content-Encoding: gzip` headers. But if we want to add Brotli support (known to be more efficient than gzip), additional work needs to be done.
+
+GitHub Pages cannot serve `Content-Encoding: br` headers, so the browser's built-in Brotli decompression will not kick in automatically. However, `dotnet publish` compresses all files into `.br` archives already. You need to decompress them in JavaScript at load time.
 
 **Step A — Add `decode.min.js` to `wwwroot/`.**
 
@@ -128,12 +132,6 @@ Add `autostart="false"` to the Blazor script tag, then start Blazor manually wit
 
 The `location.hostname !== 'localhost'` guard ensures Brotli interception is skipped during local development, where the dev server serves files normally.
 
-### 5. Update the service worker to cache `.br` files
-
-This step can be skipped if you're fine with just gzip compression.
-
-Currently, compression will work for fine for gzip assets. GitHub Pages will allocate the `.gz` files automatically, confirmed by the presence of `Content-Encoding: gzip` headers. But if we want to add Brotli support (known to be more efficient than gzip), additional work needs to be done, because GitHub Pages cannot serve `.br` files with the correct headers.
-
 The service worker caches assets during install. Since `loadBootResource` fetches `asset.url + '.br'` at runtime, the service worker must pre-cache those same `.br` URLs — otherwise the browser fetches `.br` from the network every time, defeating offline support.
 
 Also, the integrity hash in the manifest is for the *uncompressed* file. Including it on the `.br` request causes the browser to reject the response. It has to be stripped for Brotli assets.
@@ -157,7 +155,7 @@ const assetsRequests = self.assetsManifest.assets
     });
 ```
 
-### 6. Activate the new service worker immediately
+### 5. Activate the new service worker immediately
 
 In the `onInstall` handler, call `self.skipWaiting()` to activate the new service worker as soon as possible. This ensures that the updated caching logic takes effect right away, without waiting for users to close all tabs.
 
@@ -165,7 +163,7 @@ In the `onInstall` handler, call `self.skipWaiting()` to activate the new servic
 self.skipWaiting();
 ```
 
-### 7. Fix `onFetch` to serve `index.html` only for SPA navigation requests
+### 6. Fix `onFetch` to serve `index.html` only for SPA navigation requests
 
 Currently, all navigation requests are being served `index.html`, which breaks requests for static assets that include a file extension (e.g. `.css`, `.js`, `.png`). Instead, we should only serve `index.html` for navigation requests that do not have a file extension, while allowing requests with file extensions to pass through to the cache or network as normal.
 
@@ -207,7 +205,7 @@ async function onFetch(event) {
 }
 ```
 
-### 8. Add a GitHub Actions workflow for GitHub Pages
+### 7. Add a GitHub Actions workflow for GitHub Pages
 
 GitHub Pages by default serves from the `username.github.io/repo-name` path, so the app must reflect the base path in the `wwwroot/index.html` `<base href="/repo-name/">` tag AND in the `wwwroot/service-worker.js` `baseUrl` variable. This can be changed either manually in these files or dynamically in the workflow in case you deploy to multiple paths. If changed dynamically, it should be done before the publish step to avoid integrity issues, but be aware this approach for example breaks the `BlazorWasmPreRendering.Build` package. Of course, you can avoid these two patches if you are deploying to the same path.
 
