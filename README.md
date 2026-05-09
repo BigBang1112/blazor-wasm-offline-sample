@@ -130,9 +130,13 @@ The `location.hostname !== 'localhost'` guard ensures Brotli interception is ski
 
 ### 5. Update the service worker to cache `.br` files
 
+This step can be skipped if you're fine with just gzip compression.
+
+Currently, compression will work for fine for gzip assets. GitHub Pages will allocate the `.gz` files automatically, confirmed by the presence of `Content-Encoding: gzip` headers. But if we want to add Brotli support (known to be more efficient than gzip), additional work needs to be done, because GitHub Pages cannot serve `.br` files with the correct headers.
+
 The service worker caches assets during install. Since `loadBootResource` fetches `asset.url + '.br'` at runtime, the service worker must pre-cache those same `.br` URLs — otherwise the browser fetches `.br` from the network every time, defeating offline support.
 
-Also, the integrity hash in the manifest is for the *uncompressed* file. Including it on the `.br` request causes the browser to reject the response. Strip it for Brotli assets.
+Also, the integrity hash in the manifest is for the *uncompressed* file. Including it on the `.br` request causes the browser to reject the response. It has to be stripped for Brotli assets.
 
 Replace the default `assetsRequests` mapping in `service-worker.published.js`:
 
@@ -205,7 +209,7 @@ async function onFetch(event) {
 
 ### 8. Add a GitHub Actions workflow for GitHub Pages
 
-GitHub Pages by default serves from the `username.github.io/repo-name` path, so the app must reflect the base path in the `wwwroot/index.html` `<base href="/repo-name/">` tag AND in the `wwwroot/service-worker.js` `baseUrl` variable. This should be done before the publish step to avoid integrity issues. Of course, you can avoid this step if you are using a custom domain.
+GitHub Pages by default serves from the `username.github.io/repo-name` path, so the app must reflect the base path in the `wwwroot/index.html` `<base href="/repo-name/">` tag AND in the `wwwroot/service-worker.js` `baseUrl` variable. This can be changed either manually in these files or dynamically in the workflow in case you deploy to multiple paths. If changed dynamically, it should be done before the publish step to avoid integrity issues, but be aware this approach for example breaks the `BlazorWasmPreRendering.Build` package. Of course, you can avoid these two patches if you are deploying to the same path.
 
 Jekyll should be also explicitly disabled with the `.nojekyll` file, otherwise GitHub Pages will ignore all files and folders that start with an underscore (e.g. `_framework`). This can be done in the workflow after the publish step.
 
