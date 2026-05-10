@@ -11,7 +11,6 @@
     <PropertyGroup>
         <InvariantGlobalization>true</InvariantGlobalization>
         <InvariantTimezone>true</InvariantTimezone>
-        <BlazorWasmPrerenderingPathBase>/repo/</BlazorWasmPrerenderingPathBase>
     </PropertyGroup>
 
     <ItemGroup>
